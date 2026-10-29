@@ -1,0 +1,50 @@
+services:
+  app:
+    build:
+      context: ./app
+    image: cloudops-self-healing:1.0
+    container_name: selfhealing-app
+    ports:
+      - "127.0.0.1:3005:3000"
+    restart: "no"
+    networks:
+      - selfhealing-network
+
+  prometheus:
+    image: prom/prometheus:v3.7.1
+    container_name: selfhealing-prometheus
+    ports:
+      - "127.0.0.1:9091:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+    restart: unless-stopped
+    networks:
+      - selfhealing-network
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    container_name: selfhealing-alertmanager
+    ports:
+      - "127.0.0.1:9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./alertmanager/secrets:/etc/alertmanager/secrets:ro
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+    restart: unless-stopped
+    networks:
+      - selfhealing-network
+
+volumes:
+  prometheus-data:
+
+networks:
+  selfhealing-network:
+    driver: bridge

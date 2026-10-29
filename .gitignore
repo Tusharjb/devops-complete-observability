@@ -1,6 +1,31 @@
-node_modules/
+# Environment variables and credentials
 .env
 .env.*
 !.env.example
+**/secrets/
+*.pem
+*.key
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Runtime logs
 *.log
+**/logs/
+*.jsonl
+
+# Development files
 .vscode/
+.idea/
+.DS_Store
+
+# Temporary files
+*.tmp
+*.backup

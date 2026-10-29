@@ -1,0 +1,42 @@
+---
+- name: Recover self-healing application
+  hosts: local
+  gather_facts: false
+
+  vars:
+    target_container: selfhealing-app
+
+  tasks:
+    - name: Check target container exists
+      ansible.builtin.command:
+        argv:
+          - docker
+          - inspect
+          - "{{ target_container }}"
+      changed_when: false
+
+    - name: Restart unhealthy application container
+      ansible.builtin.command:
+        argv:
+          - docker
+          - restart
+          - "{{ target_container }}"
+      register: restart_result
+      changed_when: restart_result.rc == 0
+
+    - name: Wait for application health endpoint
+      ansible.builtin.uri:
+        url: http://127.0.0.1:3005/health
+        method: GET
+        status_code: 200
+        return_content: true
+      register: health_result
+      retries: 12
+      delay: 2
+      until:
+        - health_result.status == 200
+        - health_result.json.status == "UP"
+
+    - name: Display recovery result
+      ansible.builtin.debug:
+        msg: "RECOVERY SUCCESSFUL: selfhealing-app restarted and health is UP"

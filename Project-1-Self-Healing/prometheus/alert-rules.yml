@@ -1,0 +1,22 @@
+groups:
+  - name: selfhealing-alerts
+    rules:
+      - alert: SelfHealingAppUnhealthy
+        expr: selfhealing_app_healthy{job="selfhealing-app"} == 0
+        for: 15s
+        labels:
+          severity: critical
+          service: selfhealing-app
+        annotations:
+          summary: "Self-healing application is unhealthy"
+          description: "The application health metric has been 0 for at least 15 seconds."
+
+      - alert: SelfHealingAppDown
+        expr: up{job="selfhealing-app"} == 0
+        for: 15s
+        labels:
+          severity: critical
+          service: selfhealing-app
+        annotations:
+          summary: "Self-healing application is unreachable"
+          description: "Prometheus cannot scrape the application."
